@@ -195,31 +195,35 @@
     nodes.forEach(node => {
       if (excludeId && node.id == excludeId) return;
 
-      // 书签分类下拉中：有子分类但未开启「允许添加书签」的父分类不可选（仅作为目录，显示其子分类）
+      // 书签分类下拉中：有子分类但未开启「允许添加书签」的父分类，显示为禁用项（完整路径可见，但不可选，仅作目录）
       const isBookmarkCatelog = input.id.endsWith('Catelog');
       const isDirOnly = isBookmarkCatelog && node.children && node.children.length > 0 && node.allow_bookmarks !== 1;
-      if (isDirOnly) {
-        if (node.children && node.children.length > 0) {
-          appendCategoryItems(menu, input, trigger, node.children, excludeId, isFilter, depth + 1);
-        }
-        return;
-      }
 
       const item = document.createElement('div');
-      item.className = 'custom-dropdown-item';
+      item.className = 'custom-dropdown-item' + (isDirOnly ? ' custom-dropdown-item-disabled' : '');
       item.style.paddingLeft = `${15 + depth * 20}px`;
 
       const textSpan = document.createElement('span');
-      textSpan.textContent = `${depth > 0 ? '└─ ' : ''}${node.catelog}`;
+      textSpan.textContent = `${depth > 0 ? '└─ ' : ''}${node.catelog}${isDirOnly ? '（仅目录）' : ''}`;
       item.appendChild(textSpan);
 
-      item.addEventListener('click', (e) => {
-        e.stopPropagation();
-        input.value = node.id;
-        trigger.textContent = node.catelog;
-        menu.classList.remove('show');
-        input.dispatchEvent(new Event('change'));
-      });
+      if (isDirOnly) {
+        // 禁用项：点击不选中，提示用户选择其子分类
+        item.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (typeof window.showMessage === 'function') {
+            window.showMessage('该父分类禁止直接添加书签，请选择其子分类', 'error');
+          }
+        });
+      } else {
+        item.addEventListener('click', (e) => {
+          e.stopPropagation();
+          input.value = node.id;
+          trigger.textContent = node.catelog;
+          menu.classList.remove('show');
+          input.dispatchEvent(new Event('change'));
+        });
+      }
 
       menu.appendChild(item);
 

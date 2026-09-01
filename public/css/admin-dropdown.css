@@ -92,3 +92,15 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* 禁用项：父分类禁止直接添加书签时显示（仅作目录展示，不可选） */
+.custom-dropdown-item-disabled {
+  cursor: not-allowed;
+  color: #9ca3af;
+  opacity: 0.7;
+}
+
+.custom-dropdown-item-disabled:hover {
+  background-color: transparent;
+  color: #9ca3af;
+}
