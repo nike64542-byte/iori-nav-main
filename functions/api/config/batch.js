@@ -1,4 +1,5 @@
 import { isAdminAuthenticated, errorResponse, jsonResponse, markHomeCacheDirty } from '../../_middleware';
+import { assertCategoryBookmarkAllowed } from '../../lib/utils';
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -55,6 +56,11 @@ export async function onRequestPost(context) {
       const category = await env.NAV_DB.prepare('SELECT catelog, is_private FROM category WHERE id = ?').bind(categoryId).first();
       if (!category) {
         return errorResponse('找不到分类', 404);
+      }
+      // 父分类禁止直接添加书签时拒绝批量移动书签到该分类
+      const bookmarkCheck = await assertCategoryBookmarkAllowed(env.NAV_DB, categoryId);
+      if (!bookmarkCheck.ok) {
+        return errorResponse(bookmarkCheck.message, 400);
       }
 
       let baseSql = `UPDATE sites SET catelog_id = ?, catelog_name = ?`;

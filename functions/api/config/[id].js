@@ -1,6 +1,6 @@
 // functions/api/config/[id].js
 import { isAdminAuthenticated, errorResponse, jsonResponse, normalizeSortOrder, markHomeCacheDirty } from '../../_middleware';
-import { buildFaviconUrl, getUrlMatchCandidates, normalizeUrlForStorage } from '../../lib/utils';
+import { buildFaviconUrl, getUrlMatchCandidates, normalizeUrlForStorage, assertCategoryBookmarkAllowed } from '../../lib/utils';
 import { normalizeBookmarkDesc, normalizeBookmarkLogo, normalizeBookmarkName, normalizeBookmarkUrl } from '../../lib/validators';
 
 
@@ -84,6 +84,11 @@ export async function onRequestPut(context) {
     const categoryResult = await env.NAV_DB.prepare('SELECT catelog, is_private FROM category WHERE id = ?').bind(catelog_id).first();
     if (!categoryResult) {
       return errorResponse('Category not found.', 400);
+    }
+    // 父分类禁止直接添加书签时拒绝编辑到该分类
+    const bookmarkCheck = await assertCategoryBookmarkAllowed(env.NAV_DB, catelog_id);
+    if (!bookmarkCheck.ok) {
+      return errorResponse(bookmarkCheck.message, 400);
     }
     const catelogName = categoryResult.catelog;
 

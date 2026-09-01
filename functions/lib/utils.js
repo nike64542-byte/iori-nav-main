@@ -201,3 +201,20 @@ export function getStyleStr(size, color, font) {
     if (font && font in FONT_MAP) s += `font-family: ${font} !important;`;
     return s ? `style="${s}"` : '';
 }
+
+/**
+ * 检查目标分类是否允许直接承载书签
+ * 父分类（有子分类）仅在 allow_bookmarks=1 时允许直接承载书签；
+ * 叶子分类（无子分类）始终允许。
+ * @returns {{ok: boolean, message?: string}}
+ */
+export async function assertCategoryBookmarkAllowed(db, categoryId) {
+    const cat = await db.prepare('SELECT allow_bookmarks FROM category WHERE id = ?').bind(categoryId).first();
+    if (!cat) return { ok: false, message: 'Category not found.' };
+    if (cat.allow_bookmarks === 1) return { ok: true };
+    const child = await db.prepare('SELECT id FROM category WHERE parent_id = ? LIMIT 1').bind(categoryId).first();
+    if (child) {
+        return { ok: false, message: '该父分类禁止直接添加书签，请添加到其子分类' };
+    }
+    return { ok: true };
+}

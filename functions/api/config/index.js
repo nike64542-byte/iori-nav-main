@@ -1,6 +1,6 @@
 // functions/api/config/index.js
 import { isAdminAuthenticated, errorResponse, jsonResponse, normalizeSortOrder, markHomeCacheDirty } from '../../_middleware';
-import { escapeLikePattern, buildFaviconUrl, getUrlMatchCandidates, normalizeUrlForStorage, parsePagination } from '../../lib/utils';
+import { escapeLikePattern, buildFaviconUrl, getUrlMatchCandidates, normalizeUrlForStorage, parsePagination, assertCategoryBookmarkAllowed } from '../../lib/utils';
 import { normalizeBookmarkDesc, normalizeBookmarkLogo, normalizeBookmarkName, normalizeBookmarkUrl } from '../../lib/validators';
 
 const MAX_CONFIG_SEARCH_KEYWORD_LENGTH = 100;
@@ -117,6 +117,12 @@ export async function onRequestPost(context) {
 
     if (!categoryResult) {
       return errorResponse(`Category not found.`, 400);
+    }
+
+    // 父分类禁止直接添加书签时拒绝创建（allow_bookmarks=0 且有子分类）
+    const bookmarkCheck = await assertCategoryBookmarkAllowed(env.NAV_DB, catelogId);
+    if (!bookmarkCheck.ok) {
+      return errorResponse(bookmarkCheck.message, 400);
     }
     
     // If category is private, force site to be private

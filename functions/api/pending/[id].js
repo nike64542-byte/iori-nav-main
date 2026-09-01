@@ -1,6 +1,6 @@
 // functions/api/pending/[id].js
 import { isAdminAuthenticated, errorResponse, jsonResponse, markHomeCacheDirty, normalizeSortOrder } from '../../_middleware';
-import { buildFaviconUrl, getUrlMatchCandidates, normalizeUrlForStorage } from '../../lib/utils';
+import { buildFaviconUrl, getUrlMatchCandidates, normalizeUrlForStorage, assertCategoryBookmarkAllowed } from '../../lib/utils';
 import { normalizeBookmarkDesc, normalizeBookmarkLogo, normalizeBookmarkName, normalizeBookmarkUrl } from '../../lib/validators';
 
 export async function onRequestPut(context) {
@@ -79,6 +79,11 @@ export async function onRequestPut(context) {
     const category = await env.NAV_DB.prepare('SELECT catelog, is_private FROM category WHERE id = ?').bind(catelogId).first();
     if (!category) {
       return errorResponse('Category not found.', 400);
+    }
+    // 父分类禁止直接添加书签时拒绝审核通过
+    const bookmarkCheck = await assertCategoryBookmarkAllowed(env.NAV_DB, catelogId);
+    if (!bookmarkCheck.ok) {
+      return errorResponse(bookmarkCheck.message, 400);
     }
     const finalIsPrivate = category.is_private === 1 ? 1 : isPrivateValue;
 
