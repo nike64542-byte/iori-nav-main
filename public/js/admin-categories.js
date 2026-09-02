@@ -62,10 +62,9 @@ function initCategoryEvents() {
             if (typeof window.createCascadingDropdown === 'function') {
                 window.createCascadingDropdown('newCategoryParentWrapper', 'newCategoryParent', window.categoriesTree, '0');
             }
-            // 新增弹窗默认父级为"无"（顶级），不显示"允许作为书签分类"开关
+            // 新增弹窗不显示"允许作为书签分类"开关（仅父分类编辑弹窗显示）
             const newAbGroup = document.getElementById('newCategoryAllowBookmarksGroup');
             if (newAbGroup) newAbGroup.style.display = 'none';
-            setupParentAllowBookmarksListener('newCategoryParent', 'newCategoryAllowBookmarksGroup');
             const modal = document.getElementById('addCategoryModal');
             if (modal) {
                 modal.style.display = 'block';
@@ -74,20 +73,7 @@ function initCategoryEvents() {
         });
     }
 
-    // 父级分类下拉变化时，动态控制"允许作为书签分类"开关的显示
-    // 顶级分类（父级=0）不显示开关；选择父级后显示
-    function setupParentAllowBookmarksListener(parentInputId, groupId) {
-        const parentInput = document.getElementById(parentInputId);
-        if (!parentInput || parentInput.dataset.abListener) return;
-        parentInput.dataset.abListener = '1';
-        parentInput.addEventListener('change', () => {
-            const group = document.getElementById(groupId);
-            if (!group) return;
-            const isTop = !parentInput.value || parentInput.value === '0';
-            group.style.display = isTop ? 'none' : 'flex';
-        });
-    }
-    setupParentAllowBookmarksListener('editCategoryParent', 'editCategoryAllowBookmarksGroup');
+    // setupParentAllowBookmarksListener 函数已移除（仅父分类编辑弹窗显示开关）
 }
 
 // Global function to be called by Tab switching in admin.js
@@ -283,11 +269,11 @@ function bindCategoryEvents() {
                 document.getElementById('editCategorySortOrder').value = (sortOrder === null || sortOrder === 9999) ? '' : sortOrder;
                 document.getElementById('editCategoryIsPrivate').checked = !!category.is_private;
                 document.getElementById('editCategoryAllowBookmarks').checked = !!category.allow_bookmarks;
-                // 顶级分类（无父级）不显示"允许作为书签分类"开关
+                // 父分类（有子分类）显示开关，子分类不显示开关
                 const editAbGroup = document.getElementById('editCategoryAllowBookmarksGroup');
                 if (editAbGroup) {
-                    const isTopEdit = !category.parent_id || category.parent_id == '0';
-                    editAbGroup.style.display = isTopEdit ? 'none' : 'flex';
+                    const hasChildren = window.categoriesData && window.categoriesData.some(c => c.parent_id == category.id);
+                    editAbGroup.style.display = hasChildren ? 'flex' : 'none';
                 }
                 
                 if (typeof window.createCascadingDropdown === 'function') {
