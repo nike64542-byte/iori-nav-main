@@ -42,7 +42,7 @@ function _renderHorizontalItems(cats, currentCatalogName, level) {
             return `<div class="${wrapperClass}"><a href="javascript:void(0)" class="${linkClass} horizontal-cat-toggle" data-toggle-for="${cat.id}" data-id="${cat.id}">${safeName}${arrowSvg}</a>${childrenHtml}</div>`;
         }
 
-        // 无子分类，或父分类允许添加书签（名称可点击进入页面，同时保持下拉目录）
+        // 无子分类，或父分类允许作为书签分类（名称可点击进入页面，同时保持下拉目录）
         return `<div class="${wrapperClass}"><a href="${linkUrl}" class="${linkClass}" data-id="${cat.id}">${safeName}${arrowSvg}</a>${childrenHtml}</div>`;
     }).join('');
 }
@@ -79,7 +79,7 @@ function _renderVerticalItems(cats, currentCatalogName, isCustomWallpaper, level
             const chevronClass = "w-4 h-4 shrink-0 transition-transform duration-200";
             let rowHtml;
             if (canAddBookmarks) {
-                // 父分类允许添加书签：名称可点击进入页面，右侧独立箭头折叠/展开子分类
+                // 父分类允许作为书签分类：名称可点击进入页面，右侧独立箭头折叠/展开子分类
                 rowHtml = `
             <div class="flex items-center w-full">
                 <a href="?catalog=${catalogParam}" data-id="${cat.id}" class="${baseClass} ${activeClass} flex-1" style="padding-left: ${padLeft}">

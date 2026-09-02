@@ -62,7 +62,7 @@ function initCategoryEvents() {
             if (typeof window.createCascadingDropdown === 'function') {
                 window.createCascadingDropdown('newCategoryParentWrapper', 'newCategoryParent', window.categoriesTree, '0');
             }
-            // Bug1: 新增弹窗默认父级为"无"（顶级），不显示"父分类允许添加书签"开关
+            // 新增弹窗默认父级为"无"（顶级），不显示"允许作为书签分类"开关
             const newAbGroup = document.getElementById('newCategoryAllowBookmarksGroup');
             if (newAbGroup) newAbGroup.style.display = 'none';
             setupParentAllowBookmarksListener('newCategoryParent', 'newCategoryAllowBookmarksGroup');
@@ -74,7 +74,7 @@ function initCategoryEvents() {
         });
     }
 
-    // Bug1: 父级分类下拉变化时，动态控制"父分类允许添加书签"开关的显示
+    // 父级分类下拉变化时，动态控制"允许作为书签分类"开关的显示
     // 顶级分类（父级=0）不显示开关；选择父级后显示
     function setupParentAllowBookmarksListener(parentInputId, groupId) {
         const parentInput = document.getElementById(parentInputId);
@@ -283,7 +283,7 @@ function bindCategoryEvents() {
                 document.getElementById('editCategorySortOrder').value = (sortOrder === null || sortOrder === 9999) ? '' : sortOrder;
                 document.getElementById('editCategoryIsPrivate').checked = !!category.is_private;
                 document.getElementById('editCategoryAllowBookmarks').checked = !!category.allow_bookmarks;
-                // Bug1: 顶级分类（无父级）不显示"父分类允许添加书签"开关
+                // 顶级分类（无父级）不显示"允许作为书签分类"开关
                 const editAbGroup = document.getElementById('editCategoryAllowBookmarksGroup');
                 if (editAbGroup) {
                     const isTopEdit = !category.parent_id || category.parent_id == '0';
