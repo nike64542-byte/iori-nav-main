@@ -127,11 +127,14 @@
     return roots;
   };
 
-  function findCategoryLabel(nodes, id) {
+  function findCategoryLabel(nodes, id, parentPath = '') {
     for (const node of nodes) {
-      if (String(node.id) === String(id)) return node.catelog;
+      if (String(node.id) === String(id)) {
+        return parentPath ? `${parentPath} > ${node.catelog}` : node.catelog;
+      }
       if (node.children) {
-        const found = findCategoryLabel(node.children, id);
+        const currentPath = parentPath ? `${parentPath} > ${node.catelog}` : node.catelog;
+        const found = findCategoryLabel(node.children, id, currentPath);
         if (found) return found;
       }
     }
@@ -191,7 +194,7 @@
     menu.appendChild(rootItem);
   }
 
-  function appendCategoryItems(menu, input, trigger, nodes, excludeId, isFilter, depth = 0) {
+  function appendCategoryItems(menu, input, trigger, nodes, excludeId, isFilter, depth = 0, parentPath = '') {
     nodes.forEach(node => {
       if (excludeId && node.id == excludeId) return;
 
@@ -204,7 +207,8 @@
       item.style.paddingLeft = `${15 + depth * 20}px`;
 
       const textSpan = document.createElement('span');
-      textSpan.textContent = `${depth > 0 ? '└─ ' : ''}${node.catelog}${isDirOnly ? '（仅目录）' : ''}`;
+      const currentPath = parentPath ? `${parentPath} > ${node.catelog}` : node.catelog;
+      textSpan.textContent = `${depth > 0 ? '└─ ' : ''}${currentPath}${isDirOnly ? '（仅目录）' : ''}`;
       item.appendChild(textSpan);
 
       if (isDirOnly) {
@@ -219,7 +223,7 @@
         item.addEventListener('click', (e) => {
           e.stopPropagation();
           input.value = node.id;
-          trigger.textContent = node.catelog;
+          trigger.textContent = currentPath;
           menu.classList.remove('show');
           input.dispatchEvent(new Event('change'));
         });
@@ -228,7 +232,7 @@
       menu.appendChild(item);
 
       if (node.children && node.children.length > 0) {
-        appendCategoryItems(menu, input, trigger, node.children, excludeId, isFilter, depth + 1);
+        appendCategoryItems(menu, input, trigger, node.children, excludeId, isFilter, depth + 1, currentPath);
       }
     });
   }
