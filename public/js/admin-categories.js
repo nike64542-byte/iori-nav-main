@@ -62,9 +62,21 @@ function initCategoryEvents() {
             if (typeof window.createCascadingDropdown === 'function') {
                 window.createCascadingDropdown('newCategoryParentWrapper', 'newCategoryParent', window.categoriesTree, '0');
             }
-            // 新增弹窗不显示"允许作为书签分类"开关（仅父分类编辑弹窗显示）
+            // 新增弹窗：顶级分类显示开关，子分类不显示开关
             const newAbGroup = document.getElementById('newCategoryAllowBookmarksGroup');
-            if (newAbGroup) newAbGroup.style.display = 'none';
+            const isTopLevel = !newCategoryParent.value || newCategoryParent.value === '0';
+            if (newAbGroup) newAbGroup.style.display = isTopLevel ? 'flex' : 'none';
+            // 监听父级变化，动态控制开关显示
+            if (newCategoryParent && !newCategoryParent.dataset.abListener) {
+                newCategoryParent.dataset.abListener = '1';
+                newCategoryParent.addEventListener('change', () => {
+                    const group = document.getElementById('newCategoryAllowBookmarksGroup');
+                    if (group) {
+                        const isTop = !newCategoryParent.value || newCategoryParent.value === '0';
+                        group.style.display = isTop ? 'flex' : 'none';
+                    }
+                });
+            }
             const modal = document.getElementById('addCategoryModal');
             if (modal) {
                 modal.style.display = 'block';
@@ -269,11 +281,12 @@ function bindCategoryEvents() {
                 document.getElementById('editCategorySortOrder').value = (sortOrder === null || sortOrder === 9999) ? '' : sortOrder;
                 document.getElementById('editCategoryIsPrivate').checked = !!category.is_private;
                 document.getElementById('editCategoryAllowBookmarks').checked = !!category.allow_bookmarks;
-                // 父分类（有子分类）显示开关，子分类不显示开关
+                // 顶级分类或父分类显示开关，子分类不显示开关
                 const editAbGroup = document.getElementById('editCategoryAllowBookmarksGroup');
                 if (editAbGroup) {
+                    const isTopLevel = !category.parent_id || category.parent_id == '0';
                     const hasChildren = window.categoriesData && window.categoriesData.some(c => c.parent_id == category.id);
-                    editAbGroup.style.display = hasChildren ? 'flex' : 'none';
+                    editAbGroup.style.display = (isTopLevel || hasChildren) ? 'flex' : 'none';
                 }
                 
                 if (typeof window.createCascadingDropdown === 'function') {
